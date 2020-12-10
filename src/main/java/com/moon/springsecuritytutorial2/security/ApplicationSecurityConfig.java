@@ -17,6 +17,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+
 import static com.moon.springsecuritytutorial2.security.ApplicationUserPermission.*;
 import static com.moon.springsecuritytutorial2.security.ApplicationUserRole.*;
 
@@ -36,7 +38,8 @@ public class ApplicationSecurityConfig  extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .csrf().disable()
+                /**  // we change this code for learning  csrf token
+                .csrf().disable()    // a service that is used by non-browser clients, you will likely want to disable CSRF protection. for browser users, it is recommended to be used csrf.
                 .authorizeRequests()
                 .antMatchers("/","index","/css/*", "/js/*") .permitAll()    //we add this paths into white list
                 .antMatchers("/api/**").hasRole(STUDENT.name())
@@ -48,32 +51,56 @@ public class ApplicationSecurityConfig  extends WebSecurityConfigurerAdapter {
                 .authenticated()
                 .and()
                 .httpBasic();
+
+                 */
+
+                /**
+                 // It used for any request from client. browser and others. but my app is a service so we will go on with Postman. thus we dont need this anymore.
+                 .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                 .and()
+                .authorizeRequests()
+                .antMatchers("/","index","/css/*", "/js/*") .permitAll()    //we add this paths into white list
+                .antMatchers("/api/**").hasRole(STUDENT.name())
+                .anyRequest()
+                .authenticated()
+                .and()
+                .httpBasic();
+                 */
+                .csrf().disable()    // a service that is used by non-browser clients, you will likely want to disable CSRF protection. for browser users, it is recommended to be used csrf.
+                .authorizeRequests()
+                .antMatchers("/","index","/css/*", "/js/*") .permitAll()    //we add this paths into white list
+                .antMatchers("/api/**").hasRole(STUDENT.name())
+                .anyRequest()
+                .authenticated()
+                .and()
+                .httpBasic();
+
     }
 
     @Override
     @Bean
     public UserDetailsService userDetailsServiceBean() throws Exception {      // this is for how you retrieve your users from the database
        UserDetails moonUser=  User.builder()
-                .username("moonkoc")
+                .username("moon")
                 .password(passwordEncoder.encode("password"))
   //              .roles(ApplicationUserRole.STUDENT.name())  //ROLE_STUDENT
                .authorities(STUDENT.getGrantedAuthorities())
                .build();
 
-        UserDetails luaUser=  User.builder()
-                .username("lua")
-                .password(passwordEncoder.encode("password123"))
+        UserDetails adminUser=  User.builder()
+                .username("admin")
+                .password(passwordEncoder.encode("password"))
  //               .roles(ApplicationUserRole.ADMIN.name())  //ROLE_ADMIN
                 .authorities(ADMIN.getGrantedAuthorities())
                 .build();
 
-        UserDetails bahaUser=  User.builder()
-                .username("baha")
-                .password(passwordEncoder.encode("password111"))
+        UserDetails coUser=  User.builder()
+                .username("co")
+                .password(passwordEncoder.encode("password"))
   //              .roles(ApplicationUserRole.ADMINTRAINEE.name())  //ROLE_ADMINTRAINEE
                 .authorities(ADMINTRAINEE.getGrantedAuthorities())
                 .build();
 
-       return new InMemoryUserDetailsManager(moonUser,luaUser,bahaUser);    //this is a class (InMemoryUserDetailsManager) which implements UserDetailsService
+       return new InMemoryUserDetailsManager(moonUser,adminUser,coUser);    //this is a class (InMemoryUserDetailsManager) which implements UserDetailsService
     }
 }
